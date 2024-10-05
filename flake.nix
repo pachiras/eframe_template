@@ -1,27 +1,37 @@
 {
-  description = "eframe devShell";
+  description = "wasm-pack setup";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     rust-overlay.url = "github:oxalica/rust-overlay";
-    flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, rust-overlay, flake-utils, ... }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        overlays = [ (import rust-overlay) ];
-        pkgs = import nixpkgs { inherit system overlays; };
-      in with pkgs; {
-        devShells.default = mkShell rec {
-          buildInputs = [
-            # Rust
-            rust-bin.stable.latest.default
-            trunk
+  outputs = { nixpkgs, rust-overlay, ... }:
+    let system = "x86_64-linux";
+    in {
+      devShell.${system} = let
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [
+            rust-overlay.overlays.default
+          ];
+        };
 
+      in with pkgs;
+        pkgs.mkShell rec {
+          buildInputs = [
+            # Web
+            trunk
+            nodejs
+            wasm-pack
+            
             # misc. libraries
+            nil
+            pkg-config
+            zlib
             openssl
-            pkgconfig
+            which
+            git 
 
             # GUI libs
             libxkbcommon
@@ -36,10 +46,18 @@
             xorg.libXrandr
             xorg.libXi
             xorg.libX11
-
+            
+            # Rust
+            (rust-bin.stable.latest.default.override {
+              extensions = [ "clippy" "rls" "rust-analysis" "rust-src" "rust-docs" "rustfmt" "rust-analyzer" ];
+              targets = [ "wasm32-unknown-unknown" ];
+            })
+            cargo
+            cargo-watch
           ];
 
-          LD_LIBRARY_PATH = "${lib.makeLibraryPath buildInputs}";
+          shellHook = "";
+          LD_LIBRARY_PATH = "${lib.makeLibraryPath buildInputs}:$LD_LIBRARY_PATH";
         };
-      });
+    };
 }
