@@ -4,9 +4,10 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     rust-overlay.url = "github:oxalica/rust-overlay";
+    nixgl.url = "github:nix-community/nixGL";
   };
 
-  outputs = { nixpkgs, rust-overlay, ... }:
+  outputs = { nixpkgs, rust-overlay, nixgl, ... }:
     let system = "x86_64-linux";
     in {
       devShell.${system} = let
@@ -14,6 +15,7 @@
           inherit system;
           overlays = [
             rust-overlay.overlays.default
+	    nixgl.overlay
           ];
         };
 
@@ -47,6 +49,11 @@
             xorg.libXi
             xorg.libX11
             
+	    # GL
+	    # nixgl
+	    nixgl.defaultPackage.${system}.nixGLIntel
+	    #nixgl.packages.${system}.default
+
             # Rust
             (rust-bin.stable.latest.default.override {
               extensions = [ "clippy" "rls" "rust-analysis" "rust-src" "rust-docs" "rustfmt" "rust-analyzer" ];
