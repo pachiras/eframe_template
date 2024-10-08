@@ -98,5 +98,5 @@ dev> nixGLIntel cargo run --release
 ## Running web application under the nix environment (for Intel GL)
 
 ``` bash
-$ trunk serve -w index.html -w dist
+$ trunk serve -w index.html -w src
 ```
